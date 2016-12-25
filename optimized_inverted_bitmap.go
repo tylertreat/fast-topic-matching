@@ -42,7 +42,7 @@ func (c *constituentBitmap) lookup(constituent string) *roaring.Bitmap {
 	return bitmap
 }
 
-type invertedBitmapMatcher struct {
+type optimizedInvertedBitmapMatcher struct {
 	constituentBitmaps []*constituentBitmap
 	maxConstituents    uint
 	subscribers        map[uint32]Subscriber
@@ -51,12 +51,12 @@ type invertedBitmapMatcher struct {
 	mu                 sync.RWMutex
 }
 
-func NewInvertedBitmapMatcher(topicSpaceSize uint) Matcher {
+func NewOptimizedInvertedBitmapMatcher(topicSpaceSize uint) Matcher {
 	bitmaps := make([]*constituentBitmap, topicSpaceSize)
 	for i := uint(0); i < topicSpaceSize; i++ {
 		bitmaps[i] = newConstituentBitmap()
 	}
-	return &invertedBitmapMatcher{
+	return &optimizedInvertedBitmapMatcher{
 		constituentBitmaps: bitmaps,
 		maxConstituents:    topicSpaceSize,
 		subscribers:        make(map[uint32]Subscriber),
@@ -65,7 +65,7 @@ func NewInvertedBitmapMatcher(topicSpaceSize uint) Matcher {
 }
 
 // Subscribe adds the Subscriber to the topic and returns a Subscription.
-func (b *invertedBitmapMatcher) Subscribe(topic string, sub Subscriber) (*Subscription, error) {
+func (b *optimizedInvertedBitmapMatcher) Subscribe(topic string, sub Subscriber) (*Subscription, error) {
 	constituents := strings.Split(topic, delimiter)
 	if uint(len(constituents)) > b.maxConstituents {
 		return nil, ErrBadTopic
@@ -98,7 +98,7 @@ func (b *invertedBitmapMatcher) Subscribe(topic string, sub Subscriber) (*Subscr
 }
 
 // Unsubscribe removes the Subscription.
-func (b *invertedBitmapMatcher) Unsubscribe(sub *Subscription) {
+func (b *optimizedInvertedBitmapMatcher) Unsubscribe(sub *Subscription) {
 	b.mu.Lock()
 	for _, cb := range b.constituentBitmaps {
 		for _, bm := range cb.bitmaps {
@@ -106,11 +106,12 @@ func (b *invertedBitmapMatcher) Unsubscribe(sub *Subscription) {
 		}
 	}
 	b.deletedPositions = append(b.deletedPositions, sub.id)
+	delete(b.subscribers, sub.id)
 	b.mu.Unlock()
 }
 
 // Lookup returns the Subscribers for the given topic.
-func (b *invertedBitmapMatcher) Lookup(topic string) []Subscriber {
+func (b *optimizedInvertedBitmapMatcher) Lookup(topic string) []Subscriber {
 	constituents := strings.Split(topic, delimiter)
 	if uint(len(constituents)) > b.maxConstituents {
 		return nil
@@ -134,7 +135,7 @@ func (b *invertedBitmapMatcher) Lookup(topic string) []Subscriber {
 	}
 	b.mu.RUnlock()
 	result := roaring.FastAnd(bitmaps...)
-	subscriberSet := make(map[Subscriber]struct{})
+	subscriberSet := make(map[Subscriber]struct{}, result.GetCardinality())
 	for iter := result.Iterator(); iter.HasNext(); {
 		subscriberSet[b.subscribers[iter.Next()]] = struct{}{}
 	}

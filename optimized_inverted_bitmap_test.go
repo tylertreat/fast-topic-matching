@@ -6,10 +6,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestInvertedBitmapMatcher(t *testing.T) {
+func TestOptimizedInvertedBitmapMatcher(t *testing.T) {
 	assert := assert.New(t)
 	var (
-		ib = NewInvertedBitmapMatcher(2)
+		ib = NewOptimizedInvertedBitmapMatcher(2)
 		s0 = 0
 		s1 = 1
 		s2 = 2
@@ -51,9 +51,9 @@ func TestInvertedBitmapMatcher(t *testing.T) {
 	assertEqual(assert, []Subscriber{}, ib.Lookup("trade"))
 }
 
-func BenchmarkInvertedBitmapMatcherSubscribe(b *testing.B) {
+func BenchmarkOptimizedInvertedBitmapMatcherSubscribe(b *testing.B) {
 	var (
-		ib = NewInvertedBitmapMatcher(2)
+		ib = NewOptimizedInvertedBitmapMatcher(2)
 		s0 = 0
 	)
 
@@ -63,9 +63,9 @@ func BenchmarkInvertedBitmapMatcherSubscribe(b *testing.B) {
 	}
 }
 
-func BenchmarkInvertedBitmapMatcherUnsubscribe(b *testing.B) {
+func BenchmarkOptimizedInvertedBitmapMatcherUnsubscribe(b *testing.B) {
 	var (
-		ib = NewInvertedBitmapMatcher(2)
+		ib = NewOptimizedInvertedBitmapMatcher(2)
 		s0 = 0
 	)
 	id, _ := ib.Subscribe("*.usd", s0)
@@ -76,9 +76,9 @@ func BenchmarkInvertedBitmapMatcherUnsubscribe(b *testing.B) {
 	}
 }
 
-func BenchmarkInvertedBitmapMatcherLookup(b *testing.B) {
+func BenchmarkOptimizedInvertedBitmapMatcherLookup(b *testing.B) {
 	var (
-		ib = NewInvertedBitmapMatcher(2)
+		ib = NewOptimizedInvertedBitmapMatcher(2)
 		s0 = 0
 	)
 	ib.Subscribe("*.usd", s0)
