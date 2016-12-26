@@ -56,10 +56,11 @@ func BenchmarkTrieMatcherSubscribe(b *testing.B) {
 		m  = NewTrieMatcher()
 		s0 = 0
 	)
+	populateMatcher(m, 1000, 5)
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		m.Subscribe("*.usd", s0)
+		m.Subscribe("foo.*.baz.qux.quux", s0)
 	}
 }
 
@@ -68,7 +69,8 @@ func BenchmarkTrieMatcherUnsubscribe(b *testing.B) {
 		m  = NewTrieMatcher()
 		s0 = 0
 	)
-	id, _ := m.Subscribe("*.usd", s0)
+	id, _ := m.Subscribe("foo.*.baz.qux.quux", s0)
+	populateMatcher(m, 1000, 5)
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -81,10 +83,51 @@ func BenchmarkTrieMatcherLookup(b *testing.B) {
 		m  = NewTrieMatcher()
 		s0 = 0
 	)
-	m.Subscribe("*.usd", s0)
+	m.Subscribe("foo.*.baz.qux.quux", s0)
+	populateMatcher(m, 1000, 5)
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		m.Lookup("forex.usd")
+		m.Lookup("foo.bar.baz.qux.quux")
 	}
+}
+
+func BenchmarkMultithreaded1Thread5050Trie(b *testing.B) {
+	numItems := 1000
+	numThreads := 1
+	benchmark5050(b, numItems, numThreads, func(items [][]string) Matcher {
+		return NewTrieMatcher()
+	})
+}
+
+func BenchmarkMultithreaded2Thread5050Trie(b *testing.B) {
+	numItems := 1000
+	numThreads := 2
+	benchmark5050(b, numItems, numThreads, func(items [][]string) Matcher {
+		return NewTrieMatcher()
+	})
+}
+
+func BenchmarkMultithreaded4Thread5050Trie(b *testing.B) {
+	numItems := 1000
+	numThreads := 4
+	benchmark5050(b, numItems, numThreads, func(items [][]string) Matcher {
+		return NewTrieMatcher()
+	})
+}
+
+func BenchmarkMultithreaded8Thread5050Trie(b *testing.B) {
+	numItems := 1000
+	numThreads := 8
+	benchmark5050(b, numItems, numThreads, func(items [][]string) Matcher {
+		return NewTrieMatcher()
+	})
+}
+
+func BenchmarkMultithreaded16Thread5050Trie(b *testing.B) {
+	numItems := 1000
+	numThreads := 16
+	benchmark5050(b, numItems, numThreads, func(items [][]string) Matcher {
+		return NewTrieMatcher()
+	})
 }
