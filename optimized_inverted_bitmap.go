@@ -127,18 +127,19 @@ func (b *optimizedInvertedBitmapMatcher) Lookup(topic string) []Subscriber {
 		bitmaps[i] = b.constituentBitmaps[i].lookup(constituent)
 		if bitmaps[i].IsEmpty() {
 			// If we get an empty bitmap, there are no subscribers.
+			b.mu.RUnlock()
 			return nil
 		}
 	}
 	for i := uint(i + 1); i < b.maxConstituents; i++ {
 		bitmaps[i] = b.constituentBitmaps[i].lookup(empty)
 	}
-	b.mu.RUnlock()
 	result := roaring.FastAnd(bitmaps...)
 	subscriberSet := make(map[Subscriber]struct{}, result.GetCardinality())
 	for iter := result.Iterator(); iter.HasNext(); {
 		subscriberSet[b.subscribers[iter.Next()]] = struct{}{}
 	}
+	b.mu.RUnlock()
 
 	subscribers := make([]Subscriber, len(subscriberSet))
 	i = 0
