@@ -92,6 +92,44 @@ func BenchmarkOptimizedInvertedBitmapMatcherLookup(b *testing.B) {
 	}
 }
 
+func BenchmarkOptimizedInvertedBitmapMatcherSubscribeCold(b *testing.B) {
+	var (
+		ib = NewOptimizedInvertedBitmapMatcher(5)
+		s0 = 0
+	)
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		ib.Subscribe("foo.*.baz.qux.quux", s0)
+	}
+}
+
+func BenchmarkOptimizedInvertedBitmapMatcherUnsubscribeCold(b *testing.B) {
+	var (
+		ib = NewOptimizedInvertedBitmapMatcher(5)
+		s0 = 0
+	)
+	id, _ := ib.Subscribe("foo.*.baz.qux.quux", s0)
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		ib.Unsubscribe(id)
+	}
+}
+
+func BenchmarkOptimizedInvertedBitmapMatcherLookupCold(b *testing.B) {
+	var (
+		ib = NewOptimizedInvertedBitmapMatcher(5)
+		s0 = 0
+	)
+	ib.Subscribe("foo.*.baz.qux.quux", s0)
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		ib.Lookup("foo.bar.baz.qux.quux")
+	}
+}
+
 func BenchmarkMultithreaded1Thread5050OptimizedInvertedBitmap(b *testing.B) {
 	numItems := 1000
 	numThreads := 1
@@ -124,10 +162,66 @@ func BenchmarkMultithreaded8Thread5050OptimizedInvertedBitmap(b *testing.B) {
 	})
 }
 
+func BenchmarkMultithreaded12Thread5050OptimizedInvertedBitmap(b *testing.B) {
+	numItems := 1000
+	numThreads := 12
+	benchmark5050(b, numItems, numThreads, func(items [][]string) Matcher {
+		return NewOptimizedInvertedBitmapMatcher(uint(numItems))
+	})
+}
+
 func BenchmarkMultithreaded16Thread5050OptimizedInvertedBitmap(b *testing.B) {
 	numItems := 1000
 	numThreads := 16
 	benchmark5050(b, numItems, numThreads, func(items [][]string) Matcher {
+		return NewOptimizedInvertedBitmapMatcher(uint(numItems))
+	})
+}
+
+func BenchmarkMultithreaded1Thread9010OptimizedInvertedBitmap(b *testing.B) {
+	numItems := 1000
+	numThreads := 1
+	benchmark9010(b, numItems, numThreads, func(items [][]string) Matcher {
+		return NewOptimizedInvertedBitmapMatcher(uint(numItems))
+	})
+}
+
+func BenchmarkMultithreaded2Thread9010OptimizedInvertedBitmap(b *testing.B) {
+	numItems := 1000
+	numThreads := 2
+	benchmark9010(b, numItems, numThreads, func(items [][]string) Matcher {
+		return NewOptimizedInvertedBitmapMatcher(uint(numItems))
+	})
+}
+
+func BenchmarkMultithreaded4Thread9010OptimizedInvertedBitmap(b *testing.B) {
+	numItems := 1000
+	numThreads := 4
+	benchmark9010(b, numItems, numThreads, func(items [][]string) Matcher {
+		return NewOptimizedInvertedBitmapMatcher(uint(numItems))
+	})
+}
+
+func BenchmarkMultithreaded8Thread9010OptimizedInvertedBitmap(b *testing.B) {
+	numItems := 1000
+	numThreads := 8
+	benchmark9010(b, numItems, numThreads, func(items [][]string) Matcher {
+		return NewOptimizedInvertedBitmapMatcher(uint(numItems))
+	})
+}
+
+func BenchmarkMultithreaded12Thread9010OptimizedInvertedBitmap(b *testing.B) {
+	numItems := 1000
+	numThreads := 12
+	benchmark9010(b, numItems, numThreads, func(items [][]string) Matcher {
+		return NewOptimizedInvertedBitmapMatcher(uint(numItems))
+	})
+}
+
+func BenchmarkMultithreaded16Thread9010OptimizedInvertedBitmap(b *testing.B) {
+	numItems := 1000
+	numThreads := 16
+	benchmark9010(b, numItems, numThreads, func(items [][]string) Matcher {
 		return NewOptimizedInvertedBitmapMatcher(uint(numItems))
 	})
 }
