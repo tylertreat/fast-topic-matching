@@ -99,9 +99,13 @@ func (b *optimizedInvertedBitmapMatcher) Subscribe(topic string, sub Subscriber)
 
 // Unsubscribe removes the Subscription.
 func (b *optimizedInvertedBitmapMatcher) Unsubscribe(sub *Subscription) {
+	constituents := strings.Split(sub.topic, delimiter)
 	b.mu.Lock()
-	for _, cb := range b.constituentBitmaps {
-		for _, bm := range cb.bitmaps {
+	for i, cb := range b.constituentBitmaps {
+		if i == len(constituents) {
+			break
+		}
+		if bm, ok := cb.bitmaps[constituents[i]]; ok {
 			bm.Remove(sub.id)
 		}
 	}
